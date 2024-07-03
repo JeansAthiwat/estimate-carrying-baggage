@@ -4,10 +4,14 @@ import timm
 from torchvision import transforms as T
 import torch.nn.functional as F
 import os
-
+from torch.utils.data import DataLoader, Dataset
+from PIL import Image
+import csv
 
 INPUT_IMAGES_SIZE = (224, 224)
+CSV_FILE = "varied_image_pairs.csv"
 ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
+
 TRANSFORM = T.Compose(
     [
         T.Resize(INPUT_IMAGES_SIZE),
@@ -15,29 +19,6 @@ TRANSFORM = T.Compose(
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
 )
-
-
-class Data_Processor(object):
-    def __init__(self, height, width):
-        self.height = height
-        self.width = width
-        self.transform = T.Compose(
-            [
-                T.Resize((self.height, self.width)),
-                T.ToTensor(),
-                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            ]
-        )
-
-    def __call__(self, img):
-        return self.transform(img).unsqueeze(0)
-
-
-import torch
-from torch.utils.data import Dataset
-from torchvision import transforms
-from PIL import Image
-import csv
 
 
 class PersonWithBaggageDataset(Dataset):
@@ -83,10 +64,7 @@ class PersonWithBaggageDataset(Dataset):
 
 # Example usage:
 if __name__ == "__main__":
-    # Path to your varied_image_pairs.csv file
-    csv_file = "varied_image_pairs.csv"
-
-    # Create dataset instance
+    csv_file = CSV_FILE
     dataset = PersonWithBaggageDataset(csv_file, ROOT_DIR)
 
     # # Example of accessing data from the dataset
@@ -94,9 +72,6 @@ if __name__ == "__main__":
     #     img1, img2, label1, label2 = dataset[i]
     #     # Use img1, img2, label1, label2 as needed
     #     print(f"Pair {i+1}: Label1={label1}, Label2={label2}")
-
-    # Example of using with DataLoader
-    from torch.utils.data import DataLoader
 
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
     for batch_index, (imgs1, imgs2, labels1, labels2) in enumerate(dataloader):
