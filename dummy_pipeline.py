@@ -25,7 +25,8 @@ def train(model, dl_train, dl_val, criterion, optimizer, num_epochs):
     for epoch in range(num_epochs):
         model.train()  # Set model to training mode
 
-        for img1, img2, label1, label2 in dl_train:
+        for batch in iter(dl_train):
+            img1, img2, label1, label2 = batch
             ############# Forward pass #############
             # pass img throught isr
             output1 = model(img1)
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     dl_val = DataLoader(ds_val, batch_size=4, shuffle=False)
 
     # Initialize model
-    model = ISR()
+    model = ISR(cut_mlp_head=True)
 
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()  # or any other appropriate loss function
