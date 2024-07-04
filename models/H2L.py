@@ -48,6 +48,7 @@ class ViT_face_model(nn.Module):
         singleMLP=False,
         remove_sep=False,
         remove_pos=False,
+        do_classification=True,
     ):
         super().__init__()
         assert (
@@ -66,7 +67,7 @@ class ViT_face_model(nn.Module):
             "cls",
             "mean",
         }, "pool type must be either cls (cls token) or mean (mean pooling)"
-
+        self.do_classification = do_classification
         self.patch_size = patch_size
         self.use_cls = use_cls
         self.face_model = None
@@ -95,7 +96,8 @@ class ViT_face_model(nn.Module):
         self.pool = pool
         self.to_latent = nn.Identity()
 
-        k = 8  # 8: resnet 18
+        # k = 8  # 8: resnet 18
+        k = patch_size
         d = 14  # 16 #
         # out_dim = 512 # 512
 
@@ -151,21 +153,32 @@ class ViT_face_model(nn.Module):
             #         in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
             #     )
 
+        self.classification_head = nn.Sequential(
+            nn.Linear(out_dim * 2, out_dim),
+            nn.ReLU(),
+            nn.Linear(out_dim, num_class),
+            nn.Softmax(dim=1),  # Softmax activation
+        )
+
     def forward(
         self, patch_emb, label=None, mask=None, fea=False, vis=False, heatmap=False
     ):
         # p = self.patch_size
         x = patch_emb  # [None, 49+49, 1024] [batch, patch, emb_dim]
-        N, N1N2, C = x.size()
+        B, N1N2, C = x.size()
         # x = x.view(N, C, -1).transpose(1, 2)
+        # img, dim, x, y
+        # our: batch , patch1 + patch2 , dim_emb
         b, n, _ = x.shape
         half = int(N1N2 / 2)
+        print("half", half)
 
-        cls_tokens = repeat(self.cls_token, "() n d -> b n d", b=int(b / 2))
+        cls_tokens = repeat(self.cls_token, "() n d -> b n d", b=int(B))
         k = 1
         if self.remove_sep == False:
-            sep = repeat(self.sep, "() n d -> b n d", b=int(b / 2))
-            splits = torch.split(x, half)
+            sep = repeat(self.sep, "() n d -> b n d", b=int(B))
+            splits = torch.split(x, half, dim=1)
+            # print(splits[0].shape)
             x = torch.cat((splits[0], sep, splits[1]), dim=1)
             k = 2
 
@@ -221,6 +234,11 @@ class ViT_face_model(nn.Module):
             x2 = self.fc2(x2)
             x2 = self.bn2(x2)
             # x2 = self.mlp_head(x2)
+
+        if self.do_classification:
+            x = torch.cat((x1, x2), dim=1)
+            x = self.classification_head(x)
+            return x
 
         if heatmap:
             return f1, f2, embedding1, embedding2
