@@ -33,8 +33,3 @@ class ISR(nn.Module):
 
         x = self.swin_transformer.head(x)
         return x
-
-
-# breakpoint()
-# # Print summary of the model
-# summary(isr, input_size=(4, 3, 224, 224))

@@ -67,7 +67,7 @@ def save_to_csv(pairs, output_file):
 if __name__ == "__main__":
     image_folder = "/home/jeans/internship/resources/datasets/mon/train"
     output_file = "image_pairs_train.csv"
-    num_pairs = 700  # Set the desired number of varied pairs
+    num_pairs = 7000  # Set the desired number of varied pairs
     image_paths = get_image_paths(image_folder)
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     image_folder = "/home/jeans/internship/resources/datasets/mon/val"
     output_file = "image_pairs_val.csv"
-    num_pairs = 150  # Set the desired number of varied pairs
+    num_pairs = 1500  # Set the desired number of varied pairs
     image_paths = get_image_paths(image_folder)
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     image_folder = "/home/jeans/internship/resources/datasets/mon/test"
     output_file = "image_pairs_test.csv"
-    num_pairs = 150  # Set the desired number of varied pairs
+    num_pairs = 1500  # Set the desired number of varied pairs
     image_paths = get_image_paths(image_folder)
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)

@@ -1,0 +1,154 @@
+import torch
+import torch.nn as nn
+import timm
+from torchvision import transforms as T
+import torch.nn.functional as F
+import os
+from torch.utils.data import DataLoader, Dataset
+from PIL import Image
+import csv
+
+from models.ISR import ISR
+from models.H2L import ViT_face_model, ArcFace
+from util.utils import compute_label_difference
+from config import Config
+
+cf = Config()
+from tqdm import tqdm
+
+import wandb
+
+
+def train(
+    isr_model,
+    h2l_model,
+    dl_train,
+    dl_val,
+    criterion,
+    optimizer,
+    scheduler,
+    num_epochs,
+    device,
+):
+
+    # Initialize wandb
+    wandb.init(project="estimate-carrying-baggage")
+
+    # Log hyperparameters
+    wandb.config.update(cf.wandb_config)
+
+    best_val_loss = float("inf")
+
+    for epoch in range(num_epochs):
+        isr_model.train()  # Set model to training mode
+        h2l_model.train()  # Set model to training mode
+
+        total_loss = 0.0
+        total_correct = 0
+        total_samples = 0
+
+        for batch in tqdm(iter(dl_train)):
+            img1, img2, label1, label2 = [v.to(device) for v in batch]
+
+            # calculate more less equal
+            with torch.no_grad():
+                result = compute_label_difference(label1, label2)
+            # print("result", result)
+
+            ############# Forward pass #############
+            with torch.no_grad():
+                patch_emb1 = isr_model(img1)
+                patch_emb2 = isr_model(img2)
+            inputs = torch.cat((patch_emb1, patch_emb2), dim=1)
+
+            classy = h2l_model(inputs)
+            # print("classy shape:", classy)
+            # print(classy)
+
+            loss = criterion(classy, result).to(device)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # Accumulate metrics
+            total_loss += loss.item() * img1.size(0)
+            total_samples += img1.size(0)
+
+            # Calculate accuracy
+            _, predicted = torch.max(classy.data, 1)
+            # print(predicted)
+            total_correct += (
+                (predicted == compute_label_difference(label1, label2)).sum().item()
+            )
+
+        # Calculate average training loss and accuracy
+        avg_loss = total_loss / total_samples
+        accuracy = total_correct / total_samples
+
+        print(
+            f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}"
+        )
+        # Update scheduler
+        scheduler.step(avg_loss)
+
+        print("starting validation...")
+        isr_model.eval()  # Set ISR model to evaluation mode
+        h2l_model.eval()  # Set H2L model to evaluation mode
+        with torch.no_grad():
+            total_loss = 0.0
+            total_correct = 0
+            total_samples = 0
+
+            for batch in tqdm(dl_val):
+                img1, img2, label1, label2 = [b.to(device) for b in batch]
+
+                # Forward pass
+                patch_emb1 = isr_model(img1)
+                patch_emb2 = isr_model(img2)
+                inputs = torch.cat((patch_emb1, patch_emb2), dim=1)
+                classy = h2l_model(inputs)
+
+                results = compute_label_difference(label1, label2)
+                loss = criterion(classy, results).to(device)
+
+                # Accumulate metrics
+                total_loss += loss.item()
+                total_samples += img1.size(0)
+
+                # Calculate accuracy
+                _, predicted = torch.max(classy.data, 1)
+                total_correct += (
+                    (predicted == compute_label_difference(label1, label2)).sum().item()
+                )
+
+            # Average validation metrics
+            avg_loss = total_loss / total_samples
+            accuracy = total_correct / total_samples
+
+            # Log validation metrics to wandb
+            wandb.log(
+                {
+                    "epoch": epoch + 1,
+                    "train_loss": avg_loss,
+                    "train_accuracy": accuracy,
+                    "val_loss": avg_loss,
+                    "val_accuracy": accuracy,
+                }
+            )
+
+            print(f"Validation Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
+
+            # Save the model if validation loss decreases
+            if avg_loss < best_val_loss:
+                best_val_loss = avg_loss
+                torch.save(
+                    isr_model.state_dict(),
+                    f"results/best_isr_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
+                )
+                torch.save(
+                    h2l_model.state_dict(),
+                    f"results/best_h2l_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
+                )
+
+    print("Training complete.")
