@@ -26,7 +26,6 @@ class ViT_face_model(nn.Module):
         self,
         *,
         loss_type,
-        GPU_ID,
         num_class,
         image_size,
         patch_size=7,
@@ -131,27 +130,26 @@ class ViT_face_model(nn.Module):
             self.fc2 = nn.Linear(d * d * dim, out_dim)
 
         self.loss_type = loss_type
-        self.GPU_ID = GPU_ID
         # if self.loss_type == 'None':
         #     print("no loss for vit_face")
         # else:
-        if self.use_face_loss:
-            if self.loss_type == "Softmax":
-                self.loss = Softmax(
-                    in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
-                )
-            elif self.loss_type == "CosFace":
-                self.loss = CosFace(
-                    in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
-                )
-            elif self.loss_type == "ArcFace":
-                self.loss = ArcFace(
-                    in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
-                )
-            # elif self.loss_type == "SFace":
-            #     self.loss = SFaceLoss(
-            #         in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
-            #     )
+        # if self.use_face_loss:
+        #     if self.loss_type == "Softmax":
+        #         self.loss = Softmax(
+        #             in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
+        #         )
+        #     elif self.loss_type == "CosFace":
+        #         self.loss = CosFace(
+        #             in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
+        #         )
+        #     elif self.loss_type == "ArcFace":
+        #         self.loss = ArcFace(
+        #             in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
+        #         )
+        # elif self.loss_type == "SFace":
+        #     self.loss = SFaceLoss(
+        #         in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
+        #     )
 
         self.classification_head = nn.Sequential(
             nn.Linear(out_dim * 2, out_dim),
