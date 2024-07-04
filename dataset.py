@@ -33,8 +33,8 @@ class PersonWithBaggageDataset(Dataset):
             next(csvreader)  # Skip header
             for row in csvreader:
                 img1_path, img2_path, label1, label2 = row
-                img1_path = os.path.join(ROOT_DIR, img1_path)
-                img2_path = os.path.join(ROOT_DIR, img2_path)
+                img1_path = os.path.join(root_dir, img1_path)
+                img2_path = os.path.join(root_dir, img2_path)
                 self.images.append([img1_path, img2_path])
                 self.labels.append([int(label1), int(label2)])
 

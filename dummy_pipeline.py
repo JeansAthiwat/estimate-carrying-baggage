@@ -13,25 +13,31 @@ from models.ISR import ISR
 
 
 INPUT_IMAGES_SIZE = (224, 224)
-CSV_FILE = "manifest/varied_image_pairs.csv"
+TRAIN_CSV_FILE = "manifest/set1/image_pairs_train.csv"
+VAL_CSV_FILE = "manifest/set1/image_pairs_val.csv"
+
+TEST_CSV_FILE = "manifest/set1/image_pairs_test.csv"
+
 ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
 
 
-def train(model, dataloader, criterion, optimizer, num_epochs):
+def train(model, dl_train, dl_val, criterion, optimizer, num_epochs):
     for epoch in range(num_epochs):
         model.train()  # Set model to training mode
 
-        for img1, img2, label1, label2 in dataloader:
+        for img1, img2, label1, label2 in dl_train:
             ############# Forward pass #############
             # pass img throught isr
             output1 = model(img1)
             output2 = model(img2)
+            print(output1.shape)
+            print(type(output1))
             # pack 2 images together and pass through h2l (classification modded)
 
             # Compute loss
-            # loss1 = criterion(output1, label1)
-            # loss2 = criterion(output2, label2)
-            # loss = loss1 + loss2
+            loss1 = criterion(output1, label1)
+            loss2 = criterion(output2, label2)
+            loss = loss1 + loss2
 
             # Backward pass and optimization
             optimizer.zero_grad()
@@ -41,6 +47,8 @@ def train(model, dataloader, criterion, optimizer, num_epochs):
             # Print training statistics
             # print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
 
+        for img1, img2, label1, label2 in dl_val:
+            pass
         # Optionally: validate the model on a validation set and log metrics
         # scheduler.step()
 
@@ -48,9 +56,16 @@ def train(model, dataloader, criterion, optimizer, num_epochs):
 
 
 if __name__ == "__main__":
-    # Create dataset instance
-    dataset = PersonWithBaggageDataset(csv_file=CSV_FILE, root_dir=ROOT_DIR)
-    dataloader = DataLoader(dataset, batch_size=4, shuffle=True)
+
+    ds_train = PersonWithBaggageDataset(
+        csv_file=TRAIN_CSV_FILE, root_dir=os.path.join(ROOT_DIR, "train")
+    )
+    dl_train = DataLoader(ds_train, batch_size=4, shuffle=False)
+
+    ds_val = PersonWithBaggageDataset(
+        csv_file=VAL_CSV_FILE, root_dir=os.path.join(ROOT_DIR, "val")
+    )
+    dl_val = DataLoader(ds_val, batch_size=4, shuffle=False)
 
     # Initialize model
     model = ISR()
@@ -63,7 +78,7 @@ if __name__ == "__main__":
     num_epochs = 10
 
     # Call the training function
-    train(model, dataloader, criterion, optimizer, num_epochs)
+    train(model, dl_train, dl_val, criterion, optimizer, num_epochs)
 
     # Optionally: save the trained model
     # torch.save(model.state_dict(), 'model.pth')
