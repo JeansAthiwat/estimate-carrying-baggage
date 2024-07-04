@@ -12,18 +12,18 @@ from dataset import PersonWithBaggageDataset
 from models.ISR import ISR
 from models.H2L import ViT_face_model, ArcFace
 
+from tqdm import tqdm
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 INPUT_IMAGES_SIZE = (224, 224)
 TRAIN_CSV_FILE = "manifest/set1/image_pairs_train.csv"
 VAL_CSV_FILE = "manifest/set1/image_pairs_val.csv"
-
 TEST_CSV_FILE = "manifest/set1/image_pairs_test.csv"
-
 ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
 
 CONTINUE_FROM_CHECKPOINT = False
 CKPT_ROOT = None
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def train(
@@ -32,7 +32,7 @@ def train(
     for epoch in range(num_epochs):
         isr_model.train()  # Set model to training mode
 
-        for batch in iter(dl_train):
+        for batch in tqdm(iter(dl_train)):
             img1, img2, label1, label2 = batch
             img1, img2, label1, label2 = (
                 img1.to(device),
@@ -40,32 +40,25 @@ def train(
                 label1.to(device),
                 label2.to(device),
             )
+
             # calculate more less equal
             with torch.no_grad():
-                # Comparison operations
-                greater_than = (
-                    label1 > label2
-                ).float() * 0  # Returns 1 where label1 > label2
-                equal_to = (
-                    label1 == label2
-                ).float() * 1  # Returns 0 where label1 == label2
-                less_than = (
-                    label1 < label2
-                ).float() * 2  # Returns -1 where label1 < label2
-                result = greater_than + equal_to + less_than
-                result = result.type(torch.int64)
+                greater_than = (label1 > label2).float() * 0
+                equal_to = (label1 == label2).float() * 1
+                less_than = (label1 < label2).float() * 2
+                result = (greater_than + equal_to + less_than).type(torch.int64)
             # print("result", result)
 
             ############# Forward pass #############
             patch_emb1 = isr_model(img1)
             patch_emb2 = isr_model(img2)
             inputs = torch.cat((patch_emb1, patch_emb2), dim=1)
+
             classy = h2l_model(inputs)
-            print("classy shape:", classy)
-            print(classy)
+            # print("classy shape:", classy)
+            # print(classy)
 
             loss = criterion(classy, result).to(device)
-            print(loss)
 
             optimizer.zero_grad()
             loss.backward()
@@ -82,10 +75,10 @@ def train(
 if __name__ == "__main__":
 
     ds_train = PersonWithBaggageDataset(TRAIN_CSV_FILE, os.path.join(ROOT_DIR, "train"))
-    dl_train = DataLoader(ds_train, batch_size=2, shuffle=True)
+    dl_train = DataLoader(ds_train, batch_size=8, shuffle=True)
 
     ds_val = PersonWithBaggageDataset(VAL_CSV_FILE, os.path.join(ROOT_DIR, "val"))
-    dl_val = DataLoader(ds_val, batch_size=2, shuffle=True)
+    dl_val = DataLoader(ds_val, batch_size=8, shuffle=True)
 
     # Initialize model
     isr_model = ISR()

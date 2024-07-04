@@ -171,7 +171,6 @@ class ViT_face_model(nn.Module):
         # our: batch , patch1 + patch2 , dim_emb
         b, n, _ = x.shape
         half = int(N1N2 / 2)
-        print("half", half)
 
         cls_tokens = repeat(self.cls_token, "() n d -> b n d", b=int(B))
         k = 1
