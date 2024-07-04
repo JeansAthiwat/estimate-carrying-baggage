@@ -23,15 +23,23 @@ ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
 
 CONTINUE_FROM_CHECKPOINT = False
 CKPT_ROOT = None
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def train(isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epochs):
+def train(
+    isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epochs, device
+):
     for epoch in range(num_epochs):
         isr_model.train()  # Set model to training mode
 
         for batch in iter(dl_train):
             img1, img2, label1, label2 = batch
-
+            img1, img2, label1, label2 = (
+                img1.to(device),
+                img2.to(device),
+                label1.to(device),
+                label2.to(device),
+            )
             # calculate more less equal
             with torch.no_grad():
                 # Comparison operations
@@ -45,32 +53,26 @@ def train(isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epoc
                     label1 < label2
                 ).float() * 2  # Returns -1 where label1 < label2
                 result = greater_than + equal_to + less_than
-                result = result.int()
+                result = result.type(torch.int64)
             # print("result", result)
+
             ############# Forward pass #############
-            # pass img throught isr
             patch_emb1 = isr_model(img1)
             patch_emb2 = isr_model(img2)
             inputs = torch.cat((patch_emb1, patch_emb2), dim=1)
             classy = h2l_model(inputs)
             print("classy shape:", classy)
             print(classy)
-            # pack 2 images together and pass through h2l (classification modded)
 
-            # Compute loss
-            outconcat = torch.cat((z1, z2), dim=1)
-            loss = criterion(outconcat, result)
+            loss = criterion(classy, result).to(device)
+            print(loss)
 
-            # Backward pass and optimization
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            # Print training statistics
-            # print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
-
-        for img1, img2, label1, label2 in dl_val:
-            pass
+        # for img1, img2, label1, label2 in dl_val:
+        #     pass
         # Optionally: validate the model on a validation set and log metrics
         # scheduler.step()
 
@@ -80,10 +82,10 @@ def train(isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epoc
 if __name__ == "__main__":
 
     ds_train = PersonWithBaggageDataset(TRAIN_CSV_FILE, os.path.join(ROOT_DIR, "train"))
-    dl_train = DataLoader(ds_train, batch_size=4, shuffle=True)
+    dl_train = DataLoader(ds_train, batch_size=2, shuffle=True)
 
     ds_val = PersonWithBaggageDataset(VAL_CSV_FILE, os.path.join(ROOT_DIR, "val"))
-    dl_val = DataLoader(ds_val, batch_size=4, shuffle=True)
+    dl_val = DataLoader(ds_val, batch_size=2, shuffle=True)
 
     # Initialize model
     isr_model = ISR()
@@ -91,7 +93,7 @@ if __name__ == "__main__":
         pass
     else:
         isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
-
+    isr_model = isr_model.to(device)
     HEAD_NAME = "ArcFace"
     NUM_CLASS = 3
     IMG_SIZE = 224
@@ -120,18 +122,19 @@ if __name__ == "__main__":
         singleMLP=False,
         remove_sep=False,
     )
-
+    h2l_model = h2l_model.to(device)
     # Define loss function and optimizer
-    criterion = ArcFace(
-        in_features=out_dim, out_features=NUM_CLASS, device_id=[0]
-    )  # or any other appropriate loss function
-    optimizer = torch.optim.Adam(isr_model.parameters(), lr=0.001)
+    criterion = F.cross_entropy
+
+    params = list(isr_model.parameters()) + list(h2l_model.parameters())
+    optimizer = torch.optim.Adam(params, lr=0.001)
 
     # Set number of epochs
     num_epochs = 10
 
-    # Call the training function
-    train(isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epochs)
+    train(
+        isr_model, h2l_model, dl_train, dl_val, criterion, optimizer, num_epochs, device
+    )
 
     # Optionally: save the trained model
     # torch.save(model.state_dict(), 'model.pth')
