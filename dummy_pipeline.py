@@ -1,24 +1,16 @@
 import torch
-import torch.nn as nn
-import timm
-from torchvision import transforms as T
-import torch.nn.functional as F
 import os
-from torch.utils.data import DataLoader, Dataset
-from PIL import Image
-import csv
+from torch.utils.data import DataLoader
 
 from dataset import PersonWithBaggageDataset
 from models.ISR import ISR
-from models.H2L import ViT_face_model, ArcFace
-from util.utils import compute_label_difference
+from models.H2L import ViT_face_model
 from config import Config
+from util.train import train
+from torchvision import transforms as T
+import torch.nn.functional as F
 
 cf = Config()
-from tqdm import tqdm
-from util.train import train
-
-import wandb
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -26,51 +18,74 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if __name__ == "__main__":
 
     ds_train = PersonWithBaggageDataset(
-        cf.TRAIN_CSV_FILE, os.path.join(cf.DATASET_ROOT_DIR, "train")
+        cf.dataset_config.TRAIN_CSV_FILE,
+        os.path.join(cf.dataset_config.DATASET_ROOT_DIR, "train"),
     )
     dl_train = DataLoader(
-        ds_train, batch_size=8, shuffle=True, pin_memory=True, num_workers=1
+        ds_train,
+        batch_size=cf.train_config.batch_size,
+        shuffle=True,
+        pin_memory=True,
+        num_workers=1,
     )
 
     ds_val = PersonWithBaggageDataset(
-        cf.VAL_CSV_FILE, os.path.join(cf.DATASET_ROOT_DIR, "val")
+        cf.dataset_config.VAL_CSV_FILE,
+        os.path.join(cf.dataset_config.DATASET_ROOT_DIR, "val"),
     )
     dl_val = DataLoader(
-        ds_val, batch_size=8, shuffle=True, pin_memory=True, num_workers=1
+        ds_val,
+        batch_size=cf.train_config.batch_size,
+        shuffle=True,
+        pin_memory=True,
+        num_workers=1,
     )
 
     # Initialize model
     isr_model = ISR()
+    isr_model = isr_model.to(device)
 
-    h2l_model = ViT_face_model(**cf.VIT_face_model_params)
+    h2l_model = ViT_face_model(**cf.model_config.VIT_face_model_params)
+    h2l_model = h2l_model.to(device)
 
-    if cf.CONTINUE_FROM_CHECKPOINT:
-        isr_model.load_state_dict(
-            torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
-            strict=True,
-        )
-        h2l_model.load_state_dict(
-            torch.load("results/best_isr_model_epoch_18_val_loss_0.1177.pth"),
-            strict=True,
-        )
-        print("loaded succ")
+    if cf.train_config.CONTINUE_FROM_CHECKPOINT:
+        try:
+            isr_model.load_state_dict(
+                torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
+                strict=False,
+            )
+            h2l_model.load_state_dict(
+                torch.load("results/best_isr_model_epoch_18_val_loss_0.1177.pth"),
+                strict=False,
+            )
+            print("loaded succ")
+        except:
+            print("ERROR: fail to load model")
     else:
         isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
-        print("ERROR: load state dict failed")
+        print("Train H2L From Scratch")
 
-    isr_model = isr_model.to(device)
-    h2l_model = h2l_model.to(device)
-    # Define loss function and optimizer
+    # Define loss function
     criterion = F.cross_entropy
 
-    params = list(isr_model.parameters()) + list(h2l_model.parameters())
-    optimizer = torch.optim.Adam(params, lr=1e-5)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", factor=0.1, patience=2, verbose=True
+    # Define separate optimizers for each model
+    optimizer_h2l = torch.optim.Adam(
+        h2l_model.parameters(), lr=cf.train_config.learning_rate_h2l
     )
+    optimizer_isr = torch.optim.Adam(
+        isr_model.parameters(), lr=cf.train_config.learning_rate_isr
+    )
+
+    # Define separate schedulers for each model
+    scheduler_h2l = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer_h2l, mode="min", factor=0.1, patience=2, verbose=True
+    )
+    scheduler_isr = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer_isr, mode="min", factor=0.1, patience=2, verbose=True
+    )
+
     # Set number of epochs
-    num_epochs = 10
+    num_epochs = cf.train_config.num_epochs
 
     train(
         isr_model,
@@ -78,8 +93,10 @@ if __name__ == "__main__":
         dl_train,
         dl_val,
         criterion,
-        optimizer,
-        scheduler,
+        optimizer_h2l,
+        optimizer_isr,
+        scheduler_h2l,
+        scheduler_isr,
         num_epochs,
         device,
     )

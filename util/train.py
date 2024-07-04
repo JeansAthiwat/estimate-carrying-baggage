@@ -35,8 +35,10 @@ def train(
     dl_train,
     dl_val,
     criterion,
-    optimizer,
-    scheduler,
+    optimizer_h2l,
+    optimizer_isr,
+    scheduler_h2l,
+    scheduler_isr,
     num_epochs,
     device,
 ):
@@ -50,8 +52,16 @@ def train(
     best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
-        isr_model.train()  # Set model to training mode
-        h2l_model.train()  # Set model to training mode
+        if epoch % 5 < 4:
+            freeze_model(isr_model)
+            unfreeze_model(h2l_model)
+            optimizer = optimizer_h2l
+            scheduler = scheduler_h2l
+        else:
+            unfreeze_model(isr_model)
+            freeze_model(h2l_model)
+            optimizer = optimizer_isr
+            scheduler = scheduler_isr
 
         total_loss = 0.0
         total_correct = 0
@@ -66,14 +76,11 @@ def train(
             # print("result", result)
 
             ############# Forward pass #############
-            with torch.no_grad():
-                patch_emb1 = isr_model(img1)
-                patch_emb2 = isr_model(img2)
+            patch_emb1 = isr_model(img1)
+            patch_emb2 = isr_model(img2)
             inputs = torch.cat((patch_emb1, patch_emb2), dim=1)
 
             classy = h2l_model(inputs)
-            # print("classy shape:", classy)
-            # print(classy)
 
             loss = criterion(classy, result).to(device)
 
@@ -103,8 +110,8 @@ def train(
         scheduler.step(avg_loss)
 
         print("starting validation...")
-        isr_model.eval()  # Set ISR model to evaluation mode
-        h2l_model.eval()  # Set H2L model to evaluation mode
+        isr_model.eval()
+        h2l_model.eval()
         with torch.no_grad():
             total_loss = 0.0
             total_correct = 0
@@ -159,6 +166,9 @@ def train(
                 torch.save(
                     h2l_model.state_dict(),
                     f"results/best_h2l_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
+                )
+                print(
+                    f"Model checkpoint saved at epoch {epoch+1} with new lowest avg_loss ({avg_loss})"
                 )
 
     print("Training complete.")

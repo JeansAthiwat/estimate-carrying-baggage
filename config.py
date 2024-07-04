@@ -8,53 +8,44 @@ from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 import csv
 
-# class ENV_Config:
-#     def __init__(self):
 
-# class TRAIN_CONFIG:
-#     def __init__(self):
-
-
-class Config:
+class ENV_Config:
     def __init__(self):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+class DATASET_Config:
+    def __init__(self):
         self.DATASET_ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
-
-        self.DATASET_MANIFEST = "manifest/dummy-set-m"
+        self.DATASET_MANIFEST = "manifest/dummy-set-s"
         self.TRAIN_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_train.csv"
         self.VAL_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_val.csv"
         self.TEST_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_test.csv"
-
-        # Train config
-
-        self.CONTINUE_FROM_CHECKPOINT = True
         self.INPUT_IMAGES_SIZE = (224, 224)
 
-        # Model Config
+
+class TRAIN_Config:
+    def __init__(self):
+        self.CONTINUE_FROM_CHECKPOINT = True
+        self.CKPT_ROOT = None
+        self.batch_size = 8
+        self.num_epochs = 20
+        self.learning_rate_h2l = 1e-5
+        self.learning_rate_isr = 1e-7
+        self.scheduler_step_size = 5
+        self.scheduler_gamma = 0.1
+        self.learning_swap_epoch = 10
+        self.h2l_learning_epoch = 7
+        self.h2l_learning_epoch = self.learning_swap_epoch - self.h2l_learning_epoch
+
+
+class MODEL_Config:
+    def __init__(self):
         self.NUM_CLASS = 3
         self.IMG_SIZE = 224
         self.DEPTH_VIT = 1
         self.HEADS = 4
         self.OUT_DIM = 1024
-
-        self.wandb_config = {
-            "input_image_size": self.INPUT_IMAGES_SIZE,
-            "train_csv_file": self.TRAIN_CSV_FILE,
-            "val_csv_file": self.VAL_CSV_FILE,
-            "test_csv_file": self.TEST_CSV_FILE,
-            "root_dir": self.DATASET_ROOT_DIR,
-            "continue_from_checkpoint": self.CONTINUE_FROM_CHECKPOINT,
-            "batch_size": 8,
-            "num_epochs": 10,
-            "learning_rate": 1e-5,
-            "scheduler_step_size": 5,
-            "scheduler_gamma": 0.1,
-            "num_classes": 3,
-            "image_size": 224,
-            "depth_vit": 1,
-            "heads": 4,
-            "out_dim": 1024,
-        }
 
         self.VIT_face_model_params = dict(
             loss_type="ArcFace",
@@ -62,11 +53,11 @@ class Config:
             use_cls=False,
             use_face_loss=False,
             no_face_model=False,
-            image_size=224,
+            image_size=self.IMG_SIZE,
             patch_size=7,
             ac_patch_size=12,
             pad=4,
-            dim=1024,
+            dim=self.OUT_DIM,
             depth=self.DEPTH_VIT,
             heads=self.HEADS,
             mlp_dim=2048,
@@ -78,4 +69,33 @@ class Config:
         )
 
 
-self = Config()
+class Config:
+    def __init__(self):
+        self.env_config = ENV_Config()
+        self.dataset_config = DATASET_Config()
+        self.train_config = TRAIN_Config()
+        self.model_config = MODEL_Config()
+
+        self.wandb_config = {
+            "input_image_size": self.dataset_config.INPUT_IMAGES_SIZE,
+            "train_csv_file": self.dataset_config.TRAIN_CSV_FILE,
+            "val_csv_file": self.dataset_config.VAL_CSV_FILE,
+            "test_csv_file": self.dataset_config.TEST_CSV_FILE,
+            "root_dir": self.dataset_config.DATASET_ROOT_DIR,
+            "continue_from_checkpoint": self.train_config.CONTINUE_FROM_CHECKPOINT,
+            "checkpoint_root": self.train_config.CKPT_ROOT,
+            "batch_size": self.train_config.batch_size,
+            "num_epochs": self.train_config.num_epochs,
+            "learning_rate_h2l": self.train_config.learning_rate_h2l,
+            "learning_rate_isr": self.train_config.learning_rate_isr,
+            "scheduler_step_size": self.train_config.scheduler_step_size,
+            "scheduler_gamma": self.train_config.scheduler_gamma,
+            "num_classes": self.model_config.NUM_CLASS,
+            "image_size": self.model_config.IMG_SIZE,
+            "depth_vit": self.model_config.DEPTH_VIT,
+            "heads": self.model_config.HEADS,
+            "out_dim": self.model_config.OUT_DIM,
+        }
+
+
+cf = Config()
