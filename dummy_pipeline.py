@@ -20,6 +20,9 @@ TEST_CSV_FILE = "manifest/set1/image_pairs_test.csv"
 
 ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
 
+CONTINUE_FROM_CHECKPOINT = False
+CKPT_ROOT = None
+
 
 def train(model, dl_train, dl_val, criterion, optimizer, num_epochs):
     for epoch in range(num_epochs):
@@ -58,28 +61,28 @@ def train(model, dl_train, dl_val, criterion, optimizer, num_epochs):
 
 if __name__ == "__main__":
 
-    ds_train = PersonWithBaggageDataset(
-        csv_file=TRAIN_CSV_FILE, root_dir=os.path.join(ROOT_DIR, "train")
-    )
+    ds_train = PersonWithBaggageDataset(TRAIN_CSV_FILE, os.path.join(ROOT_DIR, "train"))
     dl_train = DataLoader(ds_train, batch_size=4, shuffle=False)
 
-    ds_val = PersonWithBaggageDataset(
-        csv_file=VAL_CSV_FILE, root_dir=os.path.join(ROOT_DIR, "val")
-    )
+    ds_val = PersonWithBaggageDataset(VAL_CSV_FILE, os.path.join(ROOT_DIR, "val"))
     dl_val = DataLoader(ds_val, batch_size=4, shuffle=False)
 
     # Initialize model
-    model = ISR(cut_mlp_head=True)
+    isr_model = ISR()
+    if CONTINUE_FROM_CHECKPOINT:
+        pass
+    else:
+        isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
 
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()  # or any other appropriate loss function
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(isr_model.parameters(), lr=0.001)
 
     # Set number of epochs
     num_epochs = 10
 
     # Call the training function
-    train(model, dl_train, dl_val, criterion, optimizer, num_epochs)
+    train(isr_model, dl_train, dl_val, criterion, optimizer, num_epochs)
 
     # Optionally: save the trained model
     # torch.save(model.state_dict(), 'model.pth')
