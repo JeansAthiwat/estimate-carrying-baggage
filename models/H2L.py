@@ -30,8 +30,8 @@ class ViT_face_model(nn.Module):
         num_class,
         image_size,
         patch_size=7,
-        ac_patch_size,
-        pad,
+        ac_patch_size=12,
+        pad=4,
         dim,
         depth,
         heads,
@@ -44,7 +44,7 @@ class ViT_face_model(nn.Module):
         dim_head=64,
         dropout=0.0,
         emb_dropout=0.0,
-        out_dim=512,
+        out_dim=1024,
         singleMLP=False,
         remove_sep=False,
         remove_pos=False,
@@ -151,20 +151,15 @@ class ViT_face_model(nn.Module):
             #         in_features=out_dim, out_features=num_class, device_id=self.GPU_ID
             #     )
 
-    def forward(self, img, label=None, mask=None, fea=False, vis=False, heatmap=False):
+    def forward(
+        self, patch_emb, label=None, mask=None, fea=False, vis=False, heatmap=False
+    ):
         # p = self.patch_size
-        if self.face_model:
-            out = self.face_model(img)
-            x = out["embedding_88"]
-            N, C, _, _ = x.size()
-            x = x.view(N, C, -1).transpose(1, 2)
-        else:
-            x = self.soft_split(img).transpose(1, 2)
-            x = self.patch_to_embedding(x)
-            N, C, _ = x.size()
-
+        x = patch_emb  # [None, 49+49, 1024] [batch, patch, emb_dim]
+        N, N1N2, C = x.size()
+        # x = x.view(N, C, -1).transpose(1, 2)
         b, n, _ = x.shape
-        half = int(N / 2)
+        half = int(N1N2 / 2)
 
         cls_tokens = repeat(self.cls_token, "() n d -> b n d", b=int(b / 2))
         k = 1
