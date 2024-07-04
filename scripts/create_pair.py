@@ -65,10 +65,31 @@ def save_to_csv(pairs, output_file):
 
 
 if __name__ == "__main__":
-    image_folder = "/mnt/c/OxygenAi/resources/mon"
-    output_file = "varied_image_pairs.csv"
-    num_pairs = 100000  # Set the desired number of varied pairs
+    image_folder = "/home/jeans/internship/resources/datasets/mon/train"
+    output_file = "image_pairs_train.csv"
+    num_pairs = 70000  # Set the desired number of varied pairs
+    image_paths = get_image_paths(image_folder)
+    varied_pairs = create_varied_pairs(image_paths, num_pairs)
+    save_to_csv(varied_pairs, output_file)
 
+    print(
+        f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs."
+    )
+
+    image_folder = "/home/jeans/internship/resources/datasets/mon/val"
+    output_file = "image_pairs_val.csv"
+    num_pairs = 15000  # Set the desired number of varied pairs
+    image_paths = get_image_paths(image_folder)
+    varied_pairs = create_varied_pairs(image_paths, num_pairs)
+    save_to_csv(varied_pairs, output_file)
+
+    print(
+        f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs."
+    )
+
+    image_folder = "/home/jeans/internship/resources/datasets/mon/test"
+    output_file = "image_pairs_test.csv"
+    num_pairs = 15000  # Set the desired number of varied pairs
     image_paths = get_image_paths(image_folder)
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
