@@ -1,0 +1,100 @@
+{
+    "os": "Linux-5.15.153.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "python": "3.12.2",
+    "heartbeatAt": "2024-07-04T10:06:06.677330",
+    "startedAt": "2024-07-04T10:06:05.919519",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/jeans/internship/estimate-carrying-baggage/dummy_pipeline.py",
+    "codePathLocal": "dummy_pipeline.py",
+    "codePath": "dummy_pipeline.py",
+    "git": {
+        "remote": "git@github.com:JeansAthiwat/estimate-carrying-baggage.git",
+        "commit": "114f5f0765b60626069c838719b219ee1165a95e"
+    },
+    "email": "athiwat5146@gmail.com",
+    "root": "/home/jeans/internship/estimate-carrying-baggage",
+    "host": "Jeans",
+    "username": "jeans",
+    "executable": "/home/jeans/anaconda3/envs/ml_env/bin/python",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 3293.732,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3293.732,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 1006.853931427002,
+            "used": 102.08489608764648
+        }
+    },
+    "memory": {
+        "total": 7.440608978271484
+    }
+}

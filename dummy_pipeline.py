@@ -11,12 +11,9 @@ import csv
 from dataset import PersonWithBaggageDataset
 from models.ISR import ISR
 from models.H2L import ViT_face_model, ArcFace
-
+from util.utils import compute_label_difference
 from tqdm import tqdm
 import wandb
-
-# Initialize wandb
-wandb.init(project="estimate-carrying-baggage")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 INPUT_IMAGES_SIZE = (224, 224)
@@ -29,13 +26,32 @@ CONTINUE_FROM_CHECKPOINT = False
 CKPT_ROOT = None
 
 
-def compute_label_difference(label1, label2):
-    # Calculate label difference as described in your code
-    greater_than = (label1 > label2).float() * 0
-    equal_to = (label1 == label2).float() * 1
-    less_than = (label1 < label2).float() * 2
-    result = (greater_than + equal_to + less_than).type(torch.int64)
-    return result
+# Initialize wandb
+wandb.init(project="estimate-carrying-baggage")
+
+
+# Log hyperparameters
+wandb.config.update(
+    {
+        "input_image_size": INPUT_IMAGES_SIZE,
+        "train_csv_file": TRAIN_CSV_FILE,
+        "val_csv_file": VAL_CSV_FILE,
+        "test_csv_file": TEST_CSV_FILE,
+        "root_dir": ROOT_DIR,
+        "continue_from_checkpoint": CONTINUE_FROM_CHECKPOINT,
+        "checkpoint_root": CKPT_ROOT,
+        "batch_size": 8,
+        "num_epochs": 10,
+        "learning_rate": 1e-5,
+        "scheduler_step_size": 5,
+        "scheduler_gamma": 0.1,
+        "num_classes": 3,
+        "image_size": 224,
+        "depth_vit": 1,
+        "heads": 4,
+        "out_dim": 1024,
+    }
+)
 
 
 def train(
