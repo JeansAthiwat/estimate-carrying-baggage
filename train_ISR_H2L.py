@@ -10,6 +10,9 @@ from util.train import train
 from torchvision import transforms as T
 import torch.nn.functional as F
 
+from timm.scheduler import create_scheduler
+from timm.optim import create_optimizer
+
 cf = Config()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

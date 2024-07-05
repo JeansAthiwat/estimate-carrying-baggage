@@ -73,6 +73,6 @@ if __name__ == "__main__":
     #     # Use img1, img2, label1, label2 as needed
     #     print(f"Pair {i+1}: Label1={label1}, Label2={label2}")
 
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
     for batch_index, (imgs1, imgs2, labels1, labels2) in enumerate(dataloader):
         print(batch_index, imgs1.shape, imgs2.shape, labels1.shape, labels2.shape)
