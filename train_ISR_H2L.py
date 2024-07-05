@@ -69,7 +69,7 @@ else:
     print("Train H2L From Scratch")
 
 # Define loss function
-criterion = F.cross_entropy
+criterion = torch.nn.CrossEntropyLoss().to(device)
 
 optimizer = torch.optim.SGD(
     [
