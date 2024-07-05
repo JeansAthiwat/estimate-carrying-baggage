@@ -50,17 +50,28 @@ if __name__ == "__main__":
 
     h2l_model = ViT_face_model(**cf.model_config.VIT_face_model_params)
     h2l_model = h2l_model.to(device)
-
+    for name, param in h2l_model.named_parameters():
+        if "0.0.fn.fn.to_qkv.weigh" in name:
+            print(f"Layer: {name}")
+            print(f"Weights: {param.data}")
+            print(f"Shape: {param.shape}")
+            print()
     if cf.train_config.CONTINUE_FROM_CHECKPOINT:
         try:
             isr_model.load_state_dict(
-                torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
-                strict=False,
+                torch.load("results/best_isr_model_epoch_18_val_loss_0.1177.pth"),
+                strict=True,
             )
             h2l_model.load_state_dict(
-                torch.load("results/best_isr_model_epoch_18_val_loss_0.1177.pth"),
-                strict=False,
+                torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
+                strict=True,
             )
+            for name, param in h2l_model.named_parameters():
+                if "0.0.fn.fn.to_qkv.weigh" in name:
+                    print(f"Layer: {name}")
+                    print(f"Weights: {param.data}")
+                    print(f"Shape: {param.shape}")
+                    print()
             print("loaded succ")
         except:
             print("ERROR: fail to load model")

@@ -99,6 +99,13 @@ def train(
                 (predicted == compute_label_difference(label1, label2)).sum().item()
             )
 
+            for name, param in h2l_model.named_parameters():
+                if "0.0.fn.fn.to_qkv.weigh" in name:
+                    print(f"Layer: {name}")
+                    print(f"Weights: {param.data}")
+                    print(f"Shape: {param.shape}")
+                    print()
+
         # Calculate average training loss and accuracy
         avg_loss = total_loss / total_samples
         accuracy = total_correct / total_samples
