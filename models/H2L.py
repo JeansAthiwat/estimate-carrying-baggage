@@ -50,9 +50,7 @@ class ViT_face_model(nn.Module):
         do_classification=True,
     ):
         super().__init__()
-        assert (
-            image_size % patch_size == 0
-        ), "Image dimensions must be divisible by the patch size."
+        assert image_size % patch_size == 0, "Image dimensions must be divisible by the patch size."
         if no_face_model:
             num_patches = (image_size // patch_size) ** 2
         else:
@@ -78,14 +76,10 @@ class ViT_face_model(nn.Module):
         if self.remove_sep == False:
             self.sep = nn.Parameter(torch.randn(1, 1, dim))
             if self.remove_pos == False:
-                self.pos_embedding = nn.Parameter(
-                    torch.randn(1, 2 * num_patches + 2, dim)
-                )
+                self.pos_embedding = nn.Parameter(torch.randn(1, 2 * num_patches + 2, dim))
         else:
             if self.remove_pos == False:
-                self.pos_embedding = nn.Parameter(
-                    torch.randn(1, 2 * num_patches + 1, dim)
-                )
+                self.pos_embedding = nn.Parameter(torch.randn(1, 2 * num_patches + 1, dim))
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.dropout = nn.Dropout(emb_dropout)
@@ -154,13 +148,12 @@ class ViT_face_model(nn.Module):
         self.classification_head = nn.Sequential(
             nn.Linear(out_dim * 2, out_dim),
             nn.ReLU(),
+            nn.Dropout(0.5),
             nn.Linear(out_dim, num_class),
-            nn.Softmax(dim=1),  # Softmax activation
+            # nn.Softmax(dim=1),  # Softmax activation
         )
 
-    def forward(
-        self, patch_emb, label=None, mask=None, fea=False, vis=False, heatmap=False
-    ):
+    def forward(self, patch_emb, label=None, mask=None, fea=False, vis=False, heatmap=False):
         # p = self.patch_size
         x = patch_emb  # [None, 49+49, 1024] [batch, patch, emb_dim]
         B, N1N2, C = x.size()
@@ -297,9 +290,7 @@ class Softmax(nn.Module):
                 temp_x = x.cuda(self.device_id[i])
                 weight = sub_weights[i].cuda(self.device_id[i])
                 bias = sub_biases[i].cuda(self.device_id[i])
-                out = torch.cat(
-                    (out, F.linear(temp_x, weight, bias).cuda(self.device_id[0])), dim=1
-                )
+                out = torch.cat((out, F.linear(temp_x, weight, bias).cuda(self.device_id[0])), dim=1)
         return out
 
     def _initialize_weights(self):
@@ -332,9 +323,7 @@ class ArcFace(nn.Module):
         cos(theta+m)
     """
 
-    def __init__(
-        self, in_features, out_features, device_id, s=64.0, m=0.50, easy_margin=False
-    ):
+    def __init__(self, in_features, out_features, device_id, s=64.0, m=0.50, easy_margin=False):
         super(ArcFace, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -368,9 +357,7 @@ class ArcFace(nn.Module):
                 cosine = torch.cat(
                     (
                         cosine,
-                        F.linear(F.normalize(temp_x), F.normalize(weight)).cuda(
-                            self.device_id[0]
-                        ),
+                        F.linear(F.normalize(temp_x), F.normalize(weight)).cuda(self.device_id[0]),
                     ),
                     dim=1,
                 )
@@ -435,9 +422,7 @@ class CosFace(nn.Module):
                 cosine = torch.cat(
                     (
                         cosine,
-                        F.linear(F.normalize(temp_x), F.normalize(weight)).cuda(
-                            self.device_id[0]
-                        ),
+                        F.linear(F.normalize(temp_x), F.normalize(weight)).cuda(self.device_id[0]),
                     ),
                     dim=1,
                 )
@@ -557,14 +542,10 @@ class Transformer(nn.Module):
                         Residual(
                             PreNorm(
                                 dim,
-                                Attention(
-                                    dim, heads=heads, dim_head=dim_head, dropout=dropout
-                                ),
+                                Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
                             )
                         ),
-                        Residual(
-                            PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))
-                        ),
+                        Residual(PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))),
                     ]
                 )
             )

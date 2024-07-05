@@ -19,8 +19,8 @@ torch.manual_seed(42)
 
 cf = Config()
 
-ISR_CKPT_PATH = "results/best_h2l_model_epoch_3_val_loss_0.2428.pth"
-H2L_CKPT_PATH = "results/best_h2l_model_epoch_3_val_loss_0.2428.pth"
+ISR_CKPT_PATH = "results/ISR_isr_frozen.pth"
+H2L_CKPT_PATH = "results/H2L_isr_frozen.pth"
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +43,7 @@ ds_val = PersonWithBaggageDataset(
 dl_val = DataLoader(
     ds_val,
     batch_size=cf.train_config.batch_size,
-    shuffle=True,
+    shuffle=False,
     pin_memory=True,
 )
 
@@ -79,7 +79,7 @@ optimizer = torch.optim.SGD(
     momentum=0.9,
 )
 
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cf.train_config.num_epochs)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cf.train_config.num_epochs, verbose=True)
 
 # Set number of epochs
 num_epochs = cf.train_config.num_epochs
@@ -97,7 +97,7 @@ train(
 )
 
 # Optionally: save the trained model
-torch.save(isr_model.state_dict(), "isr_model_last_epoch.pth")
-torch.save(h2l_model.state_dict(), "h2l_model_last_epoch.pth")
+torch.save(isr_model.state_dict(), "ISR_model_last_epoch.pth")
+torch.save(h2l_model.state_dict(), "H2L_model_last_epoch.pth")
 
 print("Data loading and model testing complete.")
