@@ -13,10 +13,13 @@ import torch.nn.functional as F
 from timm.scheduler import create_scheduler
 from timm.optim import create_optimizer
 
+import numpy as np
+
+torch.manual_seed(42)
+
 cf = Config()
 
 
-torch.seed(42)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ds_train = PersonWithBaggageDataset(
@@ -60,12 +63,7 @@ if cf.train_config.CONTINUE_FROM_CHECKPOINT:
             torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
             strict=True,
         )
-        for name, param in h2l_model.named_parameters():
-            if "0.0.fn.fn.to_qkv.weigh" in name:
-                print(f"Layer: {name}")
-                print(f"Weights: {param.data}")
-                print(f"Shape: {param.shape}")
-                print()
+
         print("loaded succ")
     except:
         print("ERROR: fail to load model")
@@ -76,17 +74,15 @@ else:
 # Define loss function
 criterion = F.cross_entropy
 
-# Define separate optimizers for each model
-optimizer_h2l = torch.optim.Adam(h2l_model.parameters(), lr=cf.train_config.learning_rate_h2l)
-optimizer_isr = torch.optim.Adam(isr_model.parameters(), lr=cf.train_config.learning_rate_isr)
+optimizer = torch.optim.SGD(
+    [
+        {'params': h2l_model.parameters(), 'lr': cf.train_config.learning_rate_h2l},
+        {'params': isr_model.parameters(), 'lr': cf.train_config.learning_rate_isr},
+    ],
+    momentum=0.9,
+)
 
-# Define separate schedulers for each model
-scheduler_h2l = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer_h2l, mode="min", factor=0.1, patience=2, verbose=True
-)
-scheduler_isr = torch.optim.lr_scheduler.ReduceLROnPlateau(
-    optimizer_isr, mode="min", factor=0.1, patience=2, verbose=True
-)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cf.train_config.num_epochs)
 
 # Set number of epochs
 num_epochs = cf.train_config.num_epochs
@@ -97,10 +93,8 @@ train(
     dl_train,
     dl_val,
     criterion,
-    optimizer_h2l,
-    optimizer_isr,
-    scheduler_h2l,
-    scheduler_isr,
+    optimizer,
+    scheduler,
     num_epochs,
     device,
 )

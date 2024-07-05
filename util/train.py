@@ -51,14 +51,14 @@ def train(
     best_val_loss = float("inf")
 
     for epoch in range(num_epochs):
-        if epoch % 5 < 4:
+        if epoch < cf.train_config.isr_freeze_epoch:
             freeze_model(isr_model)
             unfreeze_model(h2l_model)
             optimizer = optimizer_h2l
             scheduler = scheduler_h2l
         else:
             unfreeze_model(isr_model)
-            freeze_model(h2l_model)
+            unfreeze_model(h2l_model)
             optimizer = optimizer_isr
             scheduler = scheduler_isr
 

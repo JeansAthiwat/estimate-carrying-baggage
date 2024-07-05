@@ -17,7 +17,7 @@ class ENV_Config:
 class DATASET_Config:
     def __init__(self):
         self.DATASET_ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
-        self.DATASET_MANIFEST = "manifest/dummy-set-s"
+        self.DATASET_MANIFEST = "manifest/dummy-set-m"
         self.TRAIN_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_train.csv"
         self.VAL_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_val.csv"
         self.TEST_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_test.csv"
