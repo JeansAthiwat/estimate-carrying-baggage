@@ -45,7 +45,6 @@ def train(
 
     # Initialize wandb
     wandb.init(project="estimate-carrying-baggage")
-
     # Log hyperparameters
     wandb.config.update(cf.wandb_config)
 
@@ -68,6 +67,8 @@ def train(
         total_samples = 0
 
         for batch in tqdm(iter(dl_train)):
+            optimizer.zero_grad()
+
             img1, img2, label1, label2 = [v.to(device) for v in batch]
 
             # calculate more less equal
@@ -84,7 +85,6 @@ def train(
 
             loss = criterion(classy, result).to(device)
 
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -95,24 +95,13 @@ def train(
             # Calculate accuracy
             _, predicted = torch.max(classy.data, 1)
             # print(predicted)
-            total_correct += (
-                (predicted == compute_label_difference(label1, label2)).sum().item()
-            )
-
-            for name, param in h2l_model.named_parameters():
-                if "0.0.fn.fn.to_qkv.weigh" in name:
-                    print(f"Layer: {name}")
-                    print(f"Weights: {param.data}")
-                    print(f"Shape: {param.shape}")
-                    print()
+            total_correct += (predicted == compute_label_difference(label1, label2)).sum().item()
 
         # Calculate average training loss and accuracy
         avg_loss = total_loss / total_samples
         accuracy = total_correct / total_samples
 
-        print(
-            f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}"
-        )
+        print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}")
         # Update scheduler
         scheduler.step(avg_loss)
 
@@ -142,9 +131,7 @@ def train(
 
                 # Calculate accuracy
                 _, predicted = torch.max(classy.data, 1)
-                total_correct += (
-                    (predicted == compute_label_difference(label1, label2)).sum().item()
-                )
+                total_correct += (predicted == compute_label_difference(label1, label2)).sum().item()
 
             # Average validation metrics
             avg_loss = total_loss / total_samples
@@ -174,8 +161,6 @@ def train(
                     h2l_model.state_dict(),
                     f"results/best_h2l_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
                 )
-                print(
-                    f"Model checkpoint saved at epoch {epoch+1} with new lowest avg_loss ({avg_loss})"
-                )
+                print(f"Model checkpoint saved at epoch {epoch+1} with new lowest avg_loss ({avg_loss})")
 
     print("Training complete.")
