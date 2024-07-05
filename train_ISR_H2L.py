@@ -19,6 +19,9 @@ torch.manual_seed(42)
 
 cf = Config()
 
+ISR_CKPT_PATH = "results/best_isr_model_epoch_7_val_loss_0.0622.pth"
+H2L_CKPT_PATH = "results/best_h2l_model_epoch_7_val_loss_0.0622.pth"
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -55,14 +58,8 @@ h2l_model = h2l_model.to(device)
 
 if cf.train_config.CONTINUE_FROM_CHECKPOINT:
     try:
-        isr_model.load_state_dict(
-            torch.load("results/best_isr_model_epoch_18_val_loss_0.1177.pth"),
-            strict=True,
-        )
-        h2l_model.load_state_dict(
-            torch.load("results/best_h2l_model_epoch_18_val_loss_0.1177.pth"),
-            strict=True,
-        )
+        isr_model.load_state_dict(torch.load(ISR_CKPT_PATH))
+        h2l_model.load_state_dict(torch.load(H2L_CKPT_PATH))
 
         print("loaded succ")
     except:

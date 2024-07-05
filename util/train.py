@@ -55,6 +55,7 @@ def train(
         else:
             unfreeze_model(isr_model)
             unfreeze_model(h2l_model)
+            print("isr_model unfreezed")
 
         total_loss = 0.0
         total_correct = 0
@@ -97,7 +98,7 @@ def train(
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}")
         # Update scheduler
-        scheduler.step(epoch)
+        scheduler.step()
 
         print("starting validation...")
         isr_model.eval()
