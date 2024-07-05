@@ -97,7 +97,7 @@ def train(
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}")
         # Update scheduler
-        scheduler.step(avg_loss)
+        scheduler.step(epoch)
 
         print("starting validation...")
         isr_model.eval()
