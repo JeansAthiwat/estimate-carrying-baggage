@@ -66,7 +66,9 @@ if cf.train_config.CONTINUE_FROM_CHECKPOINT:
 
         print("loaded succ")
     except:
-        print("ERROR: fail to load model")
+        isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
+        print("ERROR: fail to load model Train H2L From Scratch Instead")
+
 else:
     isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
     print("Train H2L From Scratch")

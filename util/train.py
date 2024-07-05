@@ -35,10 +35,8 @@ def train(
     dl_train,
     dl_val,
     criterion,
-    optimizer_h2l,
-    optimizer_isr,
-    scheduler_h2l,
-    scheduler_isr,
+    optimizer,
+    scheduler,
     num_epochs,
     device,
 ):
@@ -54,13 +52,9 @@ def train(
         if epoch < cf.train_config.isr_freeze_epoch:
             freeze_model(isr_model)
             unfreeze_model(h2l_model)
-            optimizer = optimizer_h2l
-            scheduler = scheduler_h2l
         else:
             unfreeze_model(isr_model)
             unfreeze_model(h2l_model)
-            optimizer = optimizer_isr
-            scheduler = scheduler_isr
 
         total_loss = 0.0
         total_correct = 0

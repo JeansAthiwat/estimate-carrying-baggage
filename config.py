@@ -31,12 +31,13 @@ class TRAIN_Config:
         self.batch_size = 4
         self.num_epochs = 20
         self.learning_rate_h2l = 1e-5
-        self.learning_rate_isr = 1e-7
+        self.learning_rate_isr = 1e-6
         self.scheduler_step_size = 5
         self.scheduler_gamma = 0.1
         self.learning_swap_epoch = 10
         self.h2l_learning_epoch = 7
         self.h2l_learning_epoch = self.learning_swap_epoch - self.h2l_learning_epoch
+        self.isr_freeze_epoch = 10
 
 
 class MODEL_Config:
