@@ -19,8 +19,8 @@ torch.manual_seed(42)
 
 cf = Config()
 
-ISR_CKPT_PATH = "results/best_isr_model_epoch_7_val_loss_0.0622.pth"
-H2L_CKPT_PATH = "results/best_h2l_model_epoch_7_val_loss_0.0622.pth"
+ISR_CKPT_PATH = "results/best_h2l_model_epoch_3_val_loss_0.2428.pth"
+H2L_CKPT_PATH = "results/best_h2l_model_epoch_3_val_loss_0.2428.pth"
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -34,7 +34,6 @@ dl_train = DataLoader(
     batch_size=cf.train_config.batch_size,
     shuffle=True,
     pin_memory=True,
-    num_workers=1,
 )
 
 ds_val = PersonWithBaggageDataset(
@@ -46,7 +45,6 @@ dl_val = DataLoader(
     batch_size=cf.train_config.batch_size,
     shuffle=True,
     pin_memory=True,
-    num_workers=1,
 )
 
 # Initialize model

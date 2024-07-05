@@ -60,7 +60,9 @@ def train(
         total_loss = 0.0
         total_correct = 0
         total_samples = 0
-
+        print("starting training...")
+        isr_model.train()
+        h2l_model.train()
         for batch in tqdm(iter(dl_train)):
             optimizer.zero_grad()
 
@@ -93,10 +95,10 @@ def train(
             total_correct += (predicted == compute_label_difference(label1, label2)).sum().item()
 
         # Calculate average training loss and accuracy
-        avg_loss = total_loss / total_samples
-        accuracy = total_correct / total_samples
+        avg_train_loss = total_loss / total_samples
+        accuracy_train = total_correct / total_samples
 
-        print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_loss:.4f}, Train Accuracy: {accuracy:.4f}")
+        print(f"Epoch [{epoch+1}/{num_epochs}], Train Loss: {avg_train_loss:.4f}, Train Accuracy: {accuracy_train:.4f}")
         # Update scheduler
         scheduler.step()
 
@@ -121,7 +123,7 @@ def train(
                 loss = criterion(classy, results).to(device)
 
                 # Accumulate metrics
-                total_loss += loss.item()
+                total_loss += loss.item() * img1.size(0)
                 total_samples += img1.size(0)
 
                 # Calculate accuracy
@@ -129,33 +131,33 @@ def train(
                 total_correct += (predicted == compute_label_difference(label1, label2)).sum().item()
 
             # Average validation metrics
-            avg_loss = total_loss / total_samples
-            accuracy = total_correct / total_samples
+            avg_val_loss = total_loss / total_samples
+            accuracy_val = total_correct / total_samples
 
             # Log validation metrics to wandb
             wandb.log(
                 {
                     "epoch": epoch + 1,
-                    "train_loss": avg_loss,
-                    "train_accuracy": accuracy,
-                    "val_loss": avg_loss,
-                    "val_accuracy": accuracy,
+                    "train_loss": avg_train_loss,
+                    "train_accuracy": accuracy_train,
+                    "val_loss": avg_val_loss,
+                    "val_accuracy": accuracy_val,
                 }
             )
 
-            print(f"Validation Loss: {avg_loss:.4f}, Accuracy: {accuracy:.4f}")
+            print(f"Validation Loss: {avg_val_loss:.4f}, Accuracy: {accuracy_val:.4f}")
 
             # Save the model if validation loss decreases
-            if avg_loss < best_val_loss:
-                best_val_loss = avg_loss
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
                 torch.save(
                     isr_model.state_dict(),
-                    f"results/best_isr_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
+                    f"results/best_isr_model_e{epoch+1}_val_loss_{avg_val_loss:.3f}_acc_{accuracy_val:.3f}.pth",
                 )
                 torch.save(
                     h2l_model.state_dict(),
-                    f"results/best_h2l_model_epoch_{epoch+1}_val_loss_{avg_loss:.4f}.pth",
+                    f"results/best_h2l_model_e{epoch+1}_val_loss_{avg_val_loss:.3f}_acc_{accuracy_val:.3f}.pth",
                 )
-                print(f"Model checkpoint saved at epoch {epoch+1} with new lowest avg_loss ({avg_loss})")
+                print(f"Epoch {epoch+1} Checkpoint saved.\navg_loss: {avg_val_loss}  val_accuracy: {accuracy_val}")
 
     print("Training complete.")
