@@ -3,16 +3,13 @@ import cv2
 import csv
 import shutil
 
-# Set the path to the folder containing the images
+# Set the path to the folder containing the person-id
 root_dir = '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/re_uid'
-
-# Set the path to the CSV file to save the labels
-# csv_file = '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/label.csv'
 
 # Set the path to the folder to copy the person folder
 copy_dir = '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/filtered'
 
-# Set the path to the CSV file to save the folder status
+# Set the path to the CSV file to save the folder status (so you dont have to do it all over again when rerun na)
 status_file = '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/status.csv'
 
 

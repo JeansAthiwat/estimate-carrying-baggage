@@ -5,13 +5,20 @@ import numpy as np
 import shutil
 
 # Set the path to the folder containing the images
-root_dir = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/re_uid'
+root_dir = '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/filtered'
 
 # Set the path to the folder where the CSV files will be saved
-csv_folder = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/csv_files'
+csv_folder = (
+    '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/csv_files_filtered'
+)
 
 # Set the path to the folder where the concatenated images will be saved
-concat_image_folder = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/concat_images'
+concat_image_folder = (
+    '/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/concat_images_filtered'
+)
+
+os.makedirs(csv_folder, exist_ok=True)
+os.makedirs(concat_image_folder, exist_ok=True)
 
 # Set the number of classes
 num_classes = 11
@@ -57,8 +64,12 @@ def display_images(images):
 
 
 for person_folder in os.listdir(root_dir):
-    # Create a CSV file for each person identity
     csv_file = os.path.join(csv_folder, f"{person_folder}.csv")
+
+    # Skip labeling if the CSV file already exists
+    if os.path.exists(csv_file):
+        print(f"CSV file for {person_folder} already exists. Skipping.")
+        continue
 
     # Create a list to store the labels
     labels = []
@@ -74,10 +85,6 @@ for person_folder in os.listdir(root_dir):
         if filename.endswith('.jpg') or filename.endswith('.png'):
             full_path = os.path.join(current_folder, filename)
             rel_path = os.path.relpath(full_path, root_dir)
-            # Check if the image has already been labeled
-            if os.path.exists(csv_file) and rel_path in [row[0] for row in csv.reader(open(csv_file, 'r'))]:
-                print(f"Skipping already labeled image: {rel_path}")
-                continue
 
             # Open the image using OpenCV
             img = cv2.imread(full_path)
@@ -102,8 +109,8 @@ for person_folder in os.listdir(root_dir):
             # Add the label to the list
             labels.append((rel_path, int(label)))
 
-    # Write the new labels to the CSV file
-    with open(csv_file, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Image', 'Label'])  # header row
-        writer.writerows(labels)
+        # Write the new labels to the CSV file
+        with open(csv_file, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Image', 'Label'])  # header row
+            writer.writerows(labels)
