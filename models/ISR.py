@@ -18,9 +18,8 @@ class ISR(nn.Module):
     def __init__(self, cut_last_avgpool=True):
         super(ISR, self).__init__()
         self.cut_last_avgpool = cut_last_avgpool
-        self.swin_transformer = timm.create_model(
-            "swin_base_patch4_window7_224", num_classes=0
-        )
+        self.swin_transformer = timm.create_model("swin_base_patch4_window7_224", num_classes=0)
+        self.swin_transformer.head = nn.
 
     def forward(self, x):
         x = self.swin_transformer.patch_embed(x)

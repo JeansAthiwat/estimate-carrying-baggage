@@ -7,21 +7,11 @@ import shutil
 # Set the path to the folder containing the images
 root_dir = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/re_uid'
 
-# Set the path to the CSV file to save the labels
-csv_file = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/label.csv'
+# Set the path to the folder where the CSV files will be saved
+csv_folder = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/csv_files'
 
-# Create a list to store the labels
-labels = []
-
-# Check if the CSV file exists
-if os.path.exists(csv_file):
-    # Read the existing labels from the CSV file
-    with open(csv_file, 'r', newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        next(reader)  # skip header row
-        existing_labels = [row[0] for row in reader]
-else:
-    existing_labels = []
+# Set the path to the folder where the concatenated images will be saved
+concat_image_folder = '/mnt/c/OxygenAi/resources/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/concat_images'
 
 # Set the number of classes
 num_classes = 11
@@ -61,12 +51,18 @@ def display_images(images):
         if key == ord('x'):
             cv2.destroyAllWindows()
             break
-        elif key == ord('d'):
-            cv2.destroyAllWindows()
-            return 'delete'
+
+    # Save the concatenated image
+    return concatenated_image
 
 
 for person_folder in os.listdir(root_dir):
+    # Create a CSV file for each person identity
+    csv_file = os.path.join(csv_folder, f"{person_folder}.csv")
+
+    # Create a list to store the labels
+    labels = []
+
     # Loop through the images in the folder
     print(person_folder)
     current_folder = os.path.join(root_dir, person_folder)
@@ -79,7 +75,7 @@ for person_folder in os.listdir(root_dir):
             full_path = os.path.join(current_folder, filename)
             rel_path = os.path.relpath(full_path, root_dir)
             # Check if the image has already been labeled
-            if rel_path in existing_labels:
+            if os.path.exists(csv_file) and rel_path in [row[0] for row in csv.reader(open(csv_file, 'r'))]:
                 print(f"Skipping already labeled image: {rel_path}")
                 continue
 
@@ -90,11 +86,10 @@ for person_folder in os.listdir(root_dir):
                 image_paths.append(rel_path)
 
     if images:
-        result = display_images(images)
-        if result == 'delete':
-            print(f"Deleting folder: {current_folder}")
-            shutil.rmtree(current_folder)
-            continue
+        concatenated_image = display_images(images)
+
+        # Save the concatenated image
+        cv2.imwrite(os.path.join(concat_image_folder, f"{person_folder}.jpg"), concatenated_image)
 
         # Get the class label from the user for each image
         for rel_path in image_paths:
@@ -108,8 +103,7 @@ for person_folder in os.listdir(root_dir):
             labels.append((rel_path, int(label)))
 
     # Write the new labels to the CSV file
-    with open(csv_file, 'a', newline='') as csvfile:
+    with open(csv_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        if not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0:
-            writer.writerow(['Image', 'Label'])  # header row
+        writer.writerow(['Image', 'Label'])  # header row
         writer.writerows(labels)
