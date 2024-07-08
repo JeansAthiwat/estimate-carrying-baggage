@@ -48,7 +48,7 @@ dl_val = DataLoader(
 )
 
 # Initialize model
-isr_model = ISR()
+isr_model = ISR(cut_last_avgpool=True, num_classes=0)
 isr_model = isr_model.to(device)
 
 h2l_model = ViT_face_model(**cf.model_config.VIT_face_model_params)
@@ -65,7 +65,7 @@ if cf.train_config.CONTINUE_FROM_CHECKPOINT:
         print("ERROR: fail to load model Train H2L From Scratch Instead")
 
 else:
-    isr_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
+    isr_model.swin_transformer.load_state_dict(torch.load("pretrained/isr/converted_timm_ISR.pt"))
     print("Train H2L From Scratch")
 
 # Define loss function

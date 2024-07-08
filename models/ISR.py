@@ -19,14 +19,8 @@ class ISR(nn.Module):
         super(ISR, self).__init__()
         self.cut_last_avgpool = cut_last_avgpool
         self.num_classes = num_classes
-        self.swin_transformer = timm.create_model("swin_base_patch4_window7_224", num_classes=0)
-
-        self.swin_transformer.head = nn.Identity()
-
-        if not self.num_classes == 0:
-            self.swin_transformer.head = nn.Sequential(
-                nn.Linear(self.swin_transformer.head.in_features, 512), nn.ReLU(), nn.Dropout(0.2), nn.Linear(512, self.num_classes)
-            )
+        self.swin_transformer = timm.create_model("swin_base_patch4_window7_224", num_classes=self.num_classes)
+        self.classification_head = nn.Sequential(nn.Linear(1024, 512), nn.ReLU(), nn.Dropout(0.2), nn.Linear(512, self.num_classes))
 
     def forward(self, x):
         x = self.swin_transformer.patch_embed(x)
@@ -36,6 +30,6 @@ class ISR(nn.Module):
 
         if not self.cut_last_avgpool:
             x = self.swin_transformer.avgpool(x)
-
-        x = self.swin_transformer.head(x)
+        if not self.num_classes == 0:
+            x = self.classification_head(x)
         return x
