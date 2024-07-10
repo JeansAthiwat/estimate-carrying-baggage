@@ -1,20 +1,32 @@
 import torch
 import torch.nn as nn
 import timm
-from torchvision import transforms as T
-import torch.nn.functional as F
+from torchvision.transforms import v2 as T
 import os
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 import csv
+import cv2
+import numpy as np
 
 INPUT_IMAGES_SIZE = (224, 224)
-CSV_FILE = "varied_image_pairs.csv"
-ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
+CSV_FILE = "manifest/dummy-set-s/image_pairs_train.csv"
+ROOT_DIR = "/home/jeans/internship/resources/datasets/mon/train"
 
+# Define the transformations with RandomApply
 TRANSFORM = T.Compose(
     [
         T.Resize(INPUT_IMAGES_SIZE),
+        T.RandomApply(
+            [
+                T.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.15),
+                # T.RandomRotation(degrees=(-20, 20)),
+                T.RandomPerspective(distortion_scale=0.15, p=0.6),
+                # T.GaussianNoise(mean=0.0, sigma=0.1, clip=True),
+                T.RandomAdjustSharpness(sharpness_factor=2, p=0.5),
+            ],
+            p=0.9,
+        ),  # Apply these transformations with a probability of 0.5
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ]
@@ -62,6 +74,22 @@ class PersonWithBaggageDataset(Dataset):
         return img1, img2, label1, label2
 
 
+def imshow(img, title=None):
+    img = img.numpy().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    img = std * img + mean
+    img = np.clip(img, 0, 1)
+    img = np.uint8(img * 255)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    if title:
+        cv2.imshow(title, img)
+    else:
+        cv2.imshow('Image', img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
 # Example usage:
 if __name__ == "__main__":
     csv_file = CSV_FILE
@@ -70,3 +98,7 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
     for batch_index, (imgs1, imgs2, labels1, labels2) in enumerate(dataloader):
         print(batch_index, imgs1.shape, imgs2.shape, labels1.shape, labels2.shape)
+        for i in range(len(imgs1)):
+            imshow(imgs1[i], title=f'Image 1 - Label: {labels1[i]}')
+            imshow(imgs2[i], title=f'Image 2 - Label: {labels2[i]}')
+        break  # Display only the first batch for brevity
