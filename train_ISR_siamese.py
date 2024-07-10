@@ -27,8 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 cf = Config()
 cf.train_config.CONTINUE_FROM_CHECKPOINT = False
-cf.dataset_config.DATASET_ROOT_DIR = "/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/filtered"
-cf.dataset_config.DATASET_MANIFEST = 'manifest/intraclass_pair_with_label'
+
 ISR_CKPT_PATH = "results/ISR_isr_frozen.pth"
 
 FREEZE_ISR = True
@@ -190,7 +189,6 @@ if cf.train_config.CONTINUE_FROM_CHECKPOINT:
         siamese_model.load_state_dict(torch.load(ISR_CKPT_PATH))
         print("loaded succ")
     except:
-
         print("ERROR: fail to load model Train H2L From Scratch Instead")
         siamese_model.load_state_dict(torch.load("pretrained/isr/isr_model_weights.pth"))
 
@@ -204,7 +202,8 @@ criterion = torch.nn.CrossEntropyLoss().to(device)
 
 optimizer = torch.optim.SGD(
     [
-        {'params': siamese_model.parameters(), 'lr': cf.train_config.learning_rate_isr},
+        {'params': siamese_model.swin_transformer.parameters(), 'lr': 1e-5},
+        {'params': siamese_model.classification_head.parameters(), 'lr': 2e-5},
     ],
     momentum=0.8,
 )

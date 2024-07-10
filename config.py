@@ -28,8 +28,8 @@ class TRAIN_Config:
     def __init__(self):
         self.CONTINUE_FROM_CHECKPOINT = False
         self.CKPT_ROOT = None
-        self.batch_size = 4
-        self.num_epochs = 10
+        self.batch_size = 16
+        self.num_epochs = 40
         self.learning_rate_h2l = 1e-5
         self.learning_rate_isr = 1e-5
         self.scheduler_step_size = 5
