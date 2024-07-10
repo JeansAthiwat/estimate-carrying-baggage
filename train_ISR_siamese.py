@@ -26,12 +26,12 @@ torch.manual_seed(42)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 cf = Config()
-cf.train_config.CONTINUE_FROM_CHECKPOINT = False
+cf.train_config.CONTINUE_FROM_CHECKPOINT = True
 
-ISR_CKPT_PATH = "results/ISR_isr_frozen.pth"
+ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e15_val_loss_1.021_acc_0.489.pth"
 
 FREEZE_ISR = True
-FREEZE_EPOCH = 15
+FREEZE_EPOCH = 0
 
 
 def train(
@@ -134,7 +134,7 @@ def train(
                     "val_loss": avg_val_loss,
                     "val_accuracy": accuracy_val,
                     # "ISR_state_dict": isr_model.state_dict(),
-                    "learning_rate": scheduler.get_last_lr(),
+                    "learning_rate": scheduler.get_last_lr()[0],
                 }
             )
 
@@ -202,8 +202,8 @@ criterion = torch.nn.CrossEntropyLoss().to(device)
 
 optimizer = torch.optim.SGD(
     [
-        {'params': siamese_model.swin_transformer.parameters(), 'lr': 1e-5},
-        {'params': siamese_model.classification_head.parameters(), 'lr': 2e-5},
+        {'params': siamese_model.swin_transformer.parameters(), 'lr': 8e-5},
+        {'params': siamese_model.classification_head.parameters(), 'lr': 8e-4},
     ],
     momentum=0.8,
 )
