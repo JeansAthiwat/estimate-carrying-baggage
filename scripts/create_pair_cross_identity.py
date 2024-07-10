@@ -16,20 +16,12 @@ def get_image_paths(image_folder):
             continue
 
         # Iterate through each subfolder within the chunk folder
-        subfolders = [
-            f
-            for f in os.listdir(chunk_folder_path)
-            if os.path.isdir(os.path.join(chunk_folder_path, f))
-        ]
+        subfolders = [f for f in os.listdir(chunk_folder_path) if os.path.isdir(os.path.join(chunk_folder_path, f))]
         subfolders.sort(key=int)  # Ensure numeric order
 
         for subfolder in subfolders:
             subfolder_path = os.path.join(chunk_folder_path, subfolder)
-            images = [
-                os.path.join(chunk_folder, subfolder, img)
-                for img in os.listdir(subfolder_path)
-                if img.endswith(".jpg")
-            ]
+            images = [os.path.join(chunk_folder, subfolder, img) for img in os.listdir(subfolder_path) if img.endswith(".jpg")]
             image_paths.extend(images)
             labels.extend([int(subfolder)] * len(images))
 
@@ -48,9 +40,7 @@ def create_varied_pairs(image_paths, num_pairs):
             all_possible_pairs.add((img1, img2, label1, label2))
 
     # Randomly sample the desired number of pairs
-    pairs = random.sample(
-        list(all_possible_pairs), min(num_pairs, len(all_possible_pairs))
-    )
+    pairs = random.sample(list(all_possible_pairs), min(num_pairs, len(all_possible_pairs)))
 
     return pairs
 
@@ -72,9 +62,7 @@ if __name__ == "__main__":
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
 
-    print(
-        f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs."
-    )
+    print(f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs.")
 
     image_folder = "/home/jeans/internship/resources/datasets/mon/val"
     output_file = "image_pairs_val.csv"
@@ -83,9 +71,7 @@ if __name__ == "__main__":
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
 
-    print(
-        f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs."
-    )
+    print(f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs.")
 
     image_folder = "/home/jeans/internship/resources/datasets/mon/test"
     output_file = "image_pairs_test.csv"
@@ -94,6 +80,4 @@ if __name__ == "__main__":
     varied_pairs = create_varied_pairs(image_paths, num_pairs)
     save_to_csv(varied_pairs, output_file)
 
-    print(
-        f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs."
-    )
+    print(f"CSV file '{output_file}' created successfully with {len(varied_pairs)} pairs.")

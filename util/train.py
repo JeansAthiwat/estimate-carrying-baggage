@@ -90,7 +90,7 @@ def train(
             total_samples += img1.size(0)
 
             # Calculate accuracy
-            _, predicted = torch.max(classy.data, 1)
+            _, predicted = torch.max(classy.data, 1)  # value, class_index
             # print(predicted)
             total_correct += (predicted == compute_label_difference(label1, label2)).sum().item()
 

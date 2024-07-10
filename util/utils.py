@@ -11,7 +11,12 @@ def compute_label_difference(label1, label2):
     return result
 
 
-def compute_label_dissimiliar(label1, label2):
+def compute_label_dissimiliarity(label1, label2):
     '''if the label of img1 is the same as img2 -> return 0
     elif the label of img1 is NOT the same as img2 -> return 1'''
     return (not (label1 == label2)).float()
+
+
+def set_parameter_requires_grad(model, requires_grad):
+    for param in model.parameters():
+        param.requires_grad = requires_grad
