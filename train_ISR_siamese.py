@@ -23,15 +23,16 @@ import wandb
 import csv
 
 torch.manual_seed(42)
+print("El CUDA esta aqui: ", torch.cuda.is_available())
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 cf = Config()
-cf.train_config.CONTINUE_FROM_CHECKPOINT = True
+cf.train_config.CONTINUE_FROM_CHECKPOINT = False
 
 ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e15_val_loss_1.021_acc_0.489.pth"
 
 FREEZE_ISR = True
-FREEZE_EPOCH = 0
+FREEZE_EPOCH = 10
 
 
 def train(
@@ -160,7 +161,7 @@ def train(
 
 ds_train = PersonWithBaggageDataset(
     cf.dataset_config.TRAIN_CSV_FILE,
-    cf.dataset_config.DATASET_ROOT_DIR,
+    os.path.join(cf.dataset_config.DATASET_ROOT_DIR, "train"),
 )
 dl_train = DataLoader(
     ds_train,
@@ -171,7 +172,7 @@ dl_train = DataLoader(
 
 ds_val = PersonWithBaggageDataset(
     cf.dataset_config.VAL_CSV_FILE,
-    cf.dataset_config.DATASET_ROOT_DIR,
+    os.path.join(cf.dataset_config.DATASET_ROOT_DIR, "val"),
 )
 dl_val = DataLoader(
     ds_val,
@@ -202,7 +203,7 @@ criterion = torch.nn.CrossEntropyLoss().to(device)
 
 optimizer = torch.optim.SGD(
     [
-        {'params': siamese_model.swin_transformer.parameters(), 'lr': 8e-5},
+        {'params': siamese_model.swin_transformer.parameters(), 'lr': 5e-5},
         {'params': siamese_model.classification_head.parameters(), 'lr': 8e-4},
     ],
     momentum=0.8,

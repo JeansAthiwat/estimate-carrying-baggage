@@ -16,8 +16,10 @@ class ENV_Config:
 
 class DATASET_Config:
     def __init__(self):
-        self.DATASET_ROOT_DIR = "/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/filtered"  # "/home/jeans/internship/resources/datasets/mon"
-        self.DATASET_MANIFEST = 'manifest/intraclass_pair_with_label'  # "manifest/dummy-set-m"
+        # self.DATASET_ROOT_DIR = "/mnt/c/OxygenAi/resources/human_with_bag/ctw_re_uid_2024-07-01-2024-07-01.bag-images/image-samples-by-class/ctw_re_uid_2024-07-01-2024-07-01.bag-images/filtered"  # "/home/jeans/internship/resources/datasets/mon"
+        # self.DATASET_MANIFEST = 'manifest/intraclass_pair_with_label'  # "manifest/dummy-set-m"
+        self.DATASET_ROOT_DIR = "/home/jeans/internship/resources/datasets/mon"
+        self.DATASET_MANIFEST = "manifest/dummy-set-m"
         self.TRAIN_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_train.csv"
         self.VAL_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_val.csv"
         self.TEST_CSV_FILE = f"{self.DATASET_MANIFEST}/image_pairs_test.csv"
@@ -28,7 +30,7 @@ class TRAIN_Config:
     def __init__(self):
         self.CONTINUE_FROM_CHECKPOINT = False
         self.CKPT_ROOT = None
-        self.batch_size = 4
+        self.batch_size = 8
         self.num_epochs = 40
         self.learning_rate_h2l = 1e-5
         self.learning_rate_isr = 1e-5
