@@ -47,7 +47,7 @@ def train(
 ):
 
     # Initialize wandb
-    wandb.init(project="estimate-baggage-ISR-Siamese-Network-CrossIdentity-S")
+    wandb.init(project="estimate-baggage-ISR-Siamese-Network-CrossIdentity-M_WITHimg-AUG")
     # Log hyperparameters
     wandb.config.update(cf.wandb_config)
 
