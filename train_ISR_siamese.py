@@ -29,7 +29,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 cf = Config()
 cf.train_config.CONTINUE_FROM_CHECKPOINT = True
 
-ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e7_val_loss_0.959_acc_0.553.pth"
+ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e7_val_loss_0.952_acc_0.617.pth"
 
 FREEZE_ISR = True
 FREEZE_EPOCH = 0
