@@ -27,12 +27,12 @@ print("El CUDA esta aqui: ", torch.cuda.is_available())
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 cf = Config()
-cf.train_config.CONTINUE_FROM_CHECKPOINT = False
+cf.train_config.CONTINUE_FROM_CHECKPOINT = True
 
-ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e15_val_loss_1.021_acc_0.489.pth"
+ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e7_val_loss_0.959_acc_0.553.pth"
 
 FREEZE_ISR = True
-FREEZE_EPOCH = 6
+FREEZE_EPOCH = 0
 
 
 def train(
@@ -203,8 +203,8 @@ criterion = torch.nn.CrossEntropyLoss(label_smoothing=0.15).to(device)
 
 optimizer = torch.optim.SGD(
     [
-        {'params': siamese_model.swin_transformer.parameters(), 'lr': 2e-5},
-        {'params': siamese_model.classification_head.parameters(), 'lr': 1e-4},
+        {'params': siamese_model.swin_transformer.parameters(), 'lr': 3e-4},
+        {'params': siamese_model.classification_head.parameters(), 'lr': 5e-4},
     ],
     momentum=0.8,
 )
