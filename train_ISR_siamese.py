@@ -32,7 +32,7 @@ cf.train_config.CONTINUE_FROM_CHECKPOINT = False
 ISR_CKPT_PATH = "results/isr_siamese/best_isr_model_e15_val_loss_1.021_acc_0.489.pth"
 
 FREEZE_ISR = True
-FREEZE_EPOCH = 10
+FREEZE_EPOCH = 6
 
 
 def train(
@@ -47,7 +47,7 @@ def train(
 ):
 
     # Initialize wandb
-    wandb.init(project="estimate-baggage-ISR-Siamese-Network-CrossIdentity-M_WITHimg-AUG")
+    wandb.init(project="estimate-baggage-ISR-Siamese-Network-CrossIdentity-M-imgAug-Label_Smoothing")
     # Log hyperparameters
     wandb.config.update(cf.wandb_config)
 
@@ -199,12 +199,12 @@ else:
 
 
 # Define loss function
-criterion = torch.nn.CrossEntropyLoss().to(device)
+criterion = torch.nn.CrossEntropyLoss(label_smoothing=0.15).to(device)
 
 optimizer = torch.optim.SGD(
     [
-        {'params': siamese_model.swin_transformer.parameters(), 'lr': 5e-5},
-        {'params': siamese_model.classification_head.parameters(), 'lr': 8e-4},
+        {'params': siamese_model.swin_transformer.parameters(), 'lr': 2e-5},
+        {'params': siamese_model.classification_head.parameters(), 'lr': 1e-4},
     ],
     momentum=0.8,
 )
